@@ -1,9 +1,12 @@
 import { z } from "zod";
 
 import {
+  ANALYSIS_LIMITS,
   SCENE_BACKGROUND_TYPES,
   SCENE_HOTSPOT_TYPE,
   SCENE_INITIAL_VERSION,
+  SCENE_LIMITS,
+  SCENE_TYPE_LIST,
 } from "@/lib/constants";
 import { sourceTypeSchema } from "@/schemas/sourceSchema";
 
@@ -79,3 +82,25 @@ export const sceneSchema = z
 export const scenePatchSchema = sceneSchema
   .omit({ id: true, memoryId: true, createdAt: true })
   .partial();
+
+// What the scene provider is allowed to see: the user's own title, the objects
+// they confirmed, and a classification label. No file names, no image bytes.
+export const sceneGenerationInputSchema = z
+  .object({
+    memoryId: z.string().min(1),
+    title: z.string().trim().min(1).max(120),
+    sceneType: z.enum(SCENE_TYPE_LIST).nullable().default(null),
+    objects: z
+      .array(z.string().trim().min(1).max(ANALYSIS_LIMITS.MAX_ITEM_LENGTH))
+      .max(SCENE_LIMITS.MAX_HOTSPOTS)
+      .default([]),
+    imageCount: z.number().int().nonnegative(),
+  })
+  .strict();
+
+// The provider's output before the repository stamps id and timestamps.
+export const sceneDraftSchema = sceneSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});

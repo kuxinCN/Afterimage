@@ -1,9 +1,17 @@
-import { DEFAULT_AI_PROVIDER, ERROR_CODES, MEMORY_STATUS } from "@/lib/constants";
+import {
+  DEFAULT_AI_PROVIDER,
+  ERROR_CODES,
+  MEMORY_STATUS,
+  SCENE_INITIAL_VERSION,
+  SCENE_LIMITS,
+} from "@/lib/constants";
 import { analysisDraftSchema, analysisInputSchema } from "@/schemas/analysisSchema";
+import { sceneDraftSchema, sceneGenerationInputSchema } from "@/schemas/sceneSchema";
 import { confirmedCopy } from "@/schemas/sourceSchema";
 import { AssetRepository } from "@/services/storage/assetRepository";
 import { StorageError } from "@/services/storage/db";
 import { MemoryRepository } from "@/services/storage/memoryRepository";
+import { SceneRepository } from "@/services/storage/sceneRepository";
 import { AiError, createProviderRegistry } from "./aiProvider";
 import { mockProvider } from "./providers/mockProvider";
 
@@ -44,6 +52,34 @@ function validateDraft(draft) {
     return analysisDraftSchema.parse(draft);
   } catch (error) {
     throw new AiError(ERROR_CODES.AI_INVALID_RESULT, "整理结果不符合约定的数据结构", {
+      cause: error,
+    });
+  }
+}
+
+// Scene failures get their own codes so the UI can tell "not confirmed yet"
+// apart from "the provider returned nonsense".
+function asSceneError(error, fallbackMessage) {
+  if (error instanceof AiError) {
+    return error;
+  }
+  if (error instanceof StorageError && error.code === ERROR_CODES.MEMORY_NOT_FOUND) {
+    return error;
+  }
+  if (error?.name === "ZodError") {
+    return new AiError(ERROR_CODES.SCENE_INVALID_RESULT, "场景结果不符合约定的数据结构", {
+      cause: error,
+    });
+  }
+
+  return new AiError(ERROR_CODES.SCENE_GENERATION_FAILED, fallbackMessage, { cause: error });
+}
+
+function validateSceneDraft(draft) {
+  try {
+    return sceneDraftSchema.parse(draft);
+  } catch (error) {
+    throw new AiError(ERROR_CODES.SCENE_INVALID_RESULT, "场景结果不符合约定的数据结构", {
       cause: error,
     });
   }
@@ -242,4 +278,94 @@ export async function confirmAnalysis(memoryId, draft) {
   });
 
   return { memory: updated, facts: updated.facts };
+}
+
+export async function generateScene(memoryId, { providerName = DEFAULT_AI_PROVIDER } = {}) {
+  if (inFlight.has(memoryId)) {
+    throw new AiError(ERROR_CODES.SCENE_GENERATION_IN_PROGRESS, "这段记忆正在生成场景，请稍候。");
+  }
+
+  inFlight.add(memoryId);
+
+  let previousStatus = null;
+
+  try {
+    const memory = await requireMemory(memoryId);
+
+    // Only confirmed content may become a scene: an unreviewed draft is still
+    // a guess, and building on it would launder the guess into a "memory".
+    if (memory.status !== MEMORY_STATUS.READY && memory.status !== MEMORY_STATUS.COMPLETED) {
+      throw new AiError(ERROR_CODES.SCENE_NOT_CONFIRMED, "请先确认整理结果，再生成场景。");
+    }
+
+    previousStatus = memory.status;
+
+    await MemoryRepository.update(memoryId, { status: MEMORY_STATUS.GENERATING });
+
+    const provider = registry.get(providerName);
+
+    if (typeof provider.buildScene !== "function") {
+      throw new AiError(
+        ERROR_CODES.AI_PROVIDER_UNAVAILABLE,
+        `Provider ${providerName} 不支持场景生成。`,
+      );
+    }
+
+    const input = sceneGenerationInputSchema.parse({
+      memoryId: memory.id,
+      title: memory.title,
+      // A classification label from the draft, not a memory fact.
+      sceneType: memory.analysis?.scene?.type ?? null,
+      objects: (memory.facts?.objects ?? [])
+        .map((item) => item.value)
+        .slice(0, SCENE_LIMITS.MAX_HOTSPOTS),
+      imageCount: memory.assetIds.length,
+    });
+
+    let draft;
+
+    try {
+      draft = await provider.buildScene(input);
+    } catch (error) {
+      throw asSceneError(error, "生成场景时出错，请稍后重试。");
+    }
+
+    const existing = await SceneRepository.getByMemoryId(memoryId);
+    const parsed = validateSceneDraft({
+      ...draft,
+      memoryId: memory.id,
+      version: existing ? existing.version + 1 : SCENE_INITIAL_VERSION,
+    });
+
+    // Regenerating updates in place: the scene id stays put, so the hotspots a
+    // user already explored keep their visit history. memoryId is deliberately
+    // left out of the patch because ownership cannot move.
+    const scene = existing
+      ? await SceneRepository.update(existing.id, {
+          template: parsed.template,
+          title: parsed.title,
+          background: parsed.background,
+          hotspots: parsed.hotspots,
+          version: parsed.version,
+        })
+      : await SceneRepository.create(parsed);
+
+    const updated = await MemoryRepository.update(memoryId, {
+      status: MEMORY_STATUS.COMPLETED,
+    });
+
+    return { memory: updated, scene };
+  } catch (error) {
+    if (previousStatus) {
+      try {
+        await MemoryRepository.update(memoryId, { status: previousStatus });
+      } catch {
+        // Restoring the status must not hide the reason generation failed.
+      }
+    }
+
+    throw asSceneError(error, "生成场景时出错，请稍后重试。");
+  } finally {
+    inFlight.delete(memoryId);
+  }
 }

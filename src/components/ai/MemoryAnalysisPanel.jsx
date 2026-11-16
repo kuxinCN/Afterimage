@@ -159,7 +159,10 @@ export function MemoryAnalysisPanel({ memoryId }) {
   }
 
   const facts = memory?.facts ?? {};
-  const isConfirmed = memory?.status === MEMORY_STATUS.READY;
+  // Generating a scene moves the memory past READY, but the content is still
+  // the same confirmed content.
+  const isConfirmed =
+    memory?.status === MEMORY_STATUS.READY || memory?.status === MEMORY_STATUS.COMPLETED;
   // The confirmed facts survive a re-analysis (only 确认并保存 rewrites them), so
   // this block follows the data instead of the status.
   const hasConfirmedFacts = Boolean(

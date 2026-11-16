@@ -1,5 +1,15 @@
-import { AI_PROVIDERS, ERROR_CODES, SCENE_TYPES, SOURCE_TYPES } from "@/lib/constants";
+import {
+  AI_PROVIDERS,
+  ERROR_CODES,
+  SCENE_BACKGROUND_TYPES,
+  SCENE_HOTSPOT_TYPE,
+  SCENE_LIMITS,
+  SCENE_TYPES,
+  SOURCE_TYPES,
+} from "@/lib/constants";
 import { analysisInputSchema } from "@/schemas/analysisSchema";
+import { sceneGenerationInputSchema } from "@/schemas/sceneSchema";
+import { assignHotspotIds, resolveTemplate, templateSlots } from "@/services/scene/sceneTemplates";
 import { AiError } from "../aiProvider";
 
 // Keyword tables only ever pick words the user already typed. Nothing here
@@ -106,6 +116,10 @@ function userItemFor(description, title) {
   return text ? userItem(text.slice(0, 500)) : null;
 }
 
+// The mock never reads pixels, so a hotspot position is an arrangement, not an
+// observation. Every hotspot carries this note and the ai_inferred label.
+const SCENE_HOTSPOT_NOTE = "位置由 Mock 模拟排布，不代表照片中的真实位置。";
+
 export const mockProvider = {
   name: AI_PROVIDERS.MOCK,
 
@@ -206,6 +220,42 @@ export const mockProvider = {
       times: times.map((value) => (value === parsed.date ? userItem(value) : providerItem(value))),
       places: places.map((value) => (value === parsed.location ? userItem(value) : providerItem(value))),
       missing: missing.slice(0, 8),
+    };
+  },
+
+  async buildScene(input) {
+    let parsed;
+
+    try {
+      parsed = sceneGenerationInputSchema.parse(input);
+    } catch (error) {
+      throw new AiError(
+        ERROR_CODES.AI_INVALID_INPUT,
+        "场景生成请求缺少必要字段，已中止",
+        { cause: error },
+      );
+    }
+
+    const template = resolveTemplate(parsed.sceneType);
+    const slots = templateSlots(template);
+    const names = dedupe(parsed.objects).slice(0, SCENE_LIMITS.MAX_HOTSPOTS);
+    const ids = assignHotspotIds(names);
+
+    return {
+      memoryId: parsed.memoryId,
+      template,
+      // The user's own title, never a sentence the mock invented.
+      title: parsed.title,
+      background: { type: SCENE_BACKGROUND_TYPES.TEMPLATE, assetId: null },
+      hotspots: names.map((name, index) => ({
+        id: ids[index],
+        name,
+        type: SCENE_HOTSPOT_TYPE,
+        position: slots[index],
+        sourceIds: [],
+        description: SCENE_HOTSPOT_NOTE,
+        sourceType: SOURCE_TYPES.AI_INFERRED,
+      })),
     };
   },
 };

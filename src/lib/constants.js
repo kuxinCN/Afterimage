@@ -73,6 +73,10 @@ export const ERROR_CODES = {
   AI_INVALID_RESULT: "AI_INVALID_RESULT",
   AI_ANALYSIS_IN_PROGRESS: "AI_ANALYSIS_IN_PROGRESS",
   AI_ANALYSIS_NOT_FOUND: "AI_ANALYSIS_NOT_FOUND",
+  SCENE_NOT_CONFIRMED: "SCENE_NOT_CONFIRMED",
+  SCENE_INVALID_RESULT: "SCENE_INVALID_RESULT",
+  SCENE_GENERATION_FAILED: "SCENE_GENERATION_FAILED",
+  SCENE_GENERATION_IN_PROGRESS: "SCENE_GENERATION_IN_PROGRESS",
 };
 
 // Single source of truth for import limits. UI copy reads these values so a
@@ -106,8 +110,8 @@ export const AI_PROVIDERS = {
 
 export const DEFAULT_AI_PROVIDER = AI_PROVIDERS.MOCK;
 
-// Stage 6 scene templates. Mock only classifies into these names; it never
-// renders them.
+// Scene template names. The mock classifies into these; sceneTemplates turns
+// them into a schematic layout, never into a claim about the photo.
 export const SCENE_TYPES = {
   CAFETERIA: "cafeteria",
   BEDROOM: "bedroom",
@@ -145,4 +149,9 @@ export const ANALYSIS_LIMITS = {
   MAX_ITEM_LENGTH: 80,
   MAX_ITEMS_PER_LIST: 24,
   MAX_MISSING_NOTES: 8,
+};
+
+// One hotspot per template slot, so the layout can never overlap itself.
+export const SCENE_LIMITS = {
+  MAX_HOTSPOTS: 24,
 };

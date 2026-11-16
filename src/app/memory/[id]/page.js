@@ -1,5 +1,6 @@
 import { MemoryAnalysisPanel } from "@/components/ai/MemoryAnalysisPanel";
 import { MemoryAssetsViewer } from "@/components/memory/MemoryAssetsViewer";
+import { MemoryScenePanel } from "@/components/scene/MemoryScenePanel";
 
 export const metadata = {
   title: "记忆详情 · 余像 Afterimage",
@@ -14,6 +15,7 @@ export default function MemoryDetailPage({ params }) {
         </a>
         <MemoryAssetsViewer memoryId={params.id} />
         <MemoryAnalysisPanel memoryId={params.id} />
+        <MemoryScenePanel memoryId={params.id} />
       </div>
     </main>
   );
