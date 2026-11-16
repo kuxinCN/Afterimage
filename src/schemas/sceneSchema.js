@@ -5,7 +5,7 @@ import {
   SCENE_HOTSPOT_TYPE,
   SCENE_INITIAL_VERSION,
 } from "@/lib/constants";
-import { sourceTypeSchema } from "@/schemas/memorySchema";
+import { sourceTypeSchema } from "@/schemas/sourceSchema";
 
 const normalizedCoordinate = z.number().min(0).max(1);
 

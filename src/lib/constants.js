@@ -67,6 +67,12 @@ export const ERROR_CODES = {
   TOO_MANY_IMAGES: "TOO_MANY_IMAGES",
   DUPLICATE_IMAGE: "DUPLICATE_IMAGE",
   IMAGES_REQUIRED: "IMAGES_REQUIRED",
+  AI_PROVIDER_UNAVAILABLE: "AI_PROVIDER_UNAVAILABLE",
+  AI_INVALID_INPUT: "AI_INVALID_INPUT",
+  AI_ANALYSIS_FAILED: "AI_ANALYSIS_FAILED",
+  AI_INVALID_RESULT: "AI_INVALID_RESULT",
+  AI_ANALYSIS_IN_PROGRESS: "AI_ANALYSIS_IN_PROGRESS",
+  AI_ANALYSIS_NOT_FOUND: "AI_ANALYSIS_NOT_FOUND",
 };
 
 // Single source of truth for import limits. UI copy reads these values so a
@@ -92,4 +98,51 @@ export const SOURCE_TYPE_LABELS = {
   [SOURCE_TYPES.IMAGE_OBSERVED]: "图片可见",
   [SOURCE_TYPES.AI_INFERRED]: "AI 推测",
   [SOURCE_TYPES.FICTIONAL]: "想象内容",
+};
+
+export const AI_PROVIDERS = {
+  MOCK: "mock",
+};
+
+export const DEFAULT_AI_PROVIDER = AI_PROVIDERS.MOCK;
+
+// Stage 6 scene templates. Mock only classifies into these names; it never
+// renders them.
+export const SCENE_TYPES = {
+  CAFETERIA: "cafeteria",
+  BEDROOM: "bedroom",
+  CLASSROOM: "classroom",
+  STREET: "street",
+  OUTDOOR: "outdoor",
+  GENERIC: "generic",
+};
+
+export const SCENE_TYPE_LIST = Object.values(SCENE_TYPES);
+
+export const SCENE_TYPE_LABELS = {
+  [SCENE_TYPES.CAFETERIA]: "食堂 / 餐厅",
+  [SCENE_TYPES.BEDROOM]: "卧室",
+  [SCENE_TYPES.CLASSROOM]: "教室",
+  [SCENE_TYPES.STREET]: "街道",
+  [SCENE_TYPES.OUTDOOR]: "户外",
+  [SCENE_TYPES.GENERIC]: "未定场景",
+};
+
+export const ANALYSIS_QUALITY_LEVELS = {
+  A: "A",
+  B: "B",
+  C: "C",
+};
+
+export const ANALYSIS_QUALITY_LABELS = {
+  A: "资料充分",
+  B: "资料有限",
+  C: "资料不足",
+};
+
+export const ANALYSIS_LIMITS = {
+  MAX_SUMMARY_LENGTH: 500,
+  MAX_ITEM_LENGTH: 80,
+  MAX_ITEMS_PER_LIST: 24,
+  MAX_MISSING_NOTES: 8,
 };
