@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { ERROR_CODES, MEMORY_STATUS } from "@/lib/constants";
+import { ERROR_CODES, MEMORY_STATUS, SOURCE_TYPES } from "@/lib/constants";
+import { userConfirmedValue } from "@/schemas/memorySchema";
 import { MemoryRepository } from "@/services/storage/memoryRepository";
 import { memoryFixture, resetDatabase } from "../../helpers/data.js";
 
@@ -54,7 +55,7 @@ describe("MemoryRepository", () => {
     const created = await MemoryRepository.create(memoryFixture({ updatedAt: 1 }));
     const updated = await MemoryRepository.update(created.id, {
       title: "中午的食堂",
-      location: "学校二食堂",
+      location: userConfirmedValue("学校二食堂"),
     });
 
     expect(updated).toMatchObject({
@@ -88,6 +89,38 @@ describe("MemoryRepository", () => {
     const updated = await MemoryRepository.update(created.id, { date: null });
 
     expect(updated.date).toBeNull();
+  });
+
+  it("will not let an untouched AI suggestion become a confirmed fact", async () => {
+    const created = await MemoryRepository.create(
+      memoryFixture({
+        location: {
+          value: "食堂",
+          sourceType: SOURCE_TYPES.AI_INFERRED,
+          sourceIds: ["asset-1"],
+          confidence: 0.6,
+        },
+      }),
+    );
+
+    // A review form that re-posts the prefilled suggestion as a plain string.
+    await expect(MemoryRepository.update(created.id, { location: "食堂" })).rejects.toMatchObject({
+      code: ERROR_CODES.VALIDATION_FAILED,
+    });
+    expect(await MemoryRepository.getById(created.id)).toMatchObject({
+      location: { sourceType: SOURCE_TYPES.AI_INFERRED, confirmed: false },
+    });
+
+    // Confirming it stays a deliberate act that keeps the photo reference.
+    const confirmed = await MemoryRepository.update(created.id, {
+      location: userConfirmedValue("食堂", ["asset-1"]),
+    });
+
+    expect(confirmed.location).toMatchObject({
+      sourceType: SOURCE_TYPES.USER_CONFIRMED,
+      sourceIds: ["asset-1"],
+      confirmed: true,
+    });
   });
 
   it("refuses to patch ownership fields", async () => {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { ERROR_CODES, SCENE_INITIAL_VERSION, SOURCE_TYPES } from "@/lib/constants";
+import { ERROR_CODES, SCENE_INITIAL_VERSION, SOURCE_TYPES, STORES } from "@/lib/constants";
+import { getDB } from "@/services/storage/db";
 import { MemoryRepository } from "@/services/storage/memoryRepository";
 import { SceneRepository } from "@/services/storage/sceneRepository";
 import {
@@ -126,6 +127,19 @@ describe("SceneRepository", () => {
 
     const reloadedMemory = await MemoryRepository.getById(memory.id);
     expect(reloadedMemory.sceneId).toBeNull();
+    await expect(SceneRepository.getById(scene.id)).resolves.toBeNull();
+  });
+
+  it("does not clear a back-reference that points at another scene", async () => {
+    const memory = await MemoryRepository.create(memoryFixture());
+    const scene = await SceneRepository.create(sceneFixture(memory.id));
+    const db = await getDB();
+    const stored = await db.get(STORES.memories, memory.id);
+    await db.put(STORES.memories, { ...stored, sceneId: "another-scene" });
+
+    await SceneRepository.deleteByMemoryId(memory.id);
+
+    expect((await MemoryRepository.getById(memory.id)).sceneId).toBe("another-scene");
     await expect(SceneRepository.getById(scene.id)).resolves.toBeNull();
   });
 });

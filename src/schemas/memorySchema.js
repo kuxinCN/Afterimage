@@ -29,29 +29,19 @@ export const sourcedValueSchema = z
     }
   });
 
-// A bare string only ever comes from a form field, so it is user-provided by
-// definition. AI and image output must arrive as an object with an explicit
-// sourceType, which keeps inference from silently becoming confirmed fact.
-function toSourcedValue(input) {
-  if (typeof input === "string") {
-    return {
-      value: input,
-      sourceType: SOURCE_TYPES.USER_CONFIRMED,
-      sourceIds: [],
-      confidence: 1,
-      confirmed: true,
-    };
-  }
-  return input;
+// Provenance is never inferred from the shape of a value. A review form can
+// easily re-post an AI suggestion as a plain string, so a bare string is
+// rejected here; callers that really mean "the user stated this" go through
+// userConfirmedValue, which is greppable in review.
+export function userConfirmedValue(value, sourceIds = []) {
+  return {
+    value,
+    sourceType: SOURCE_TYPES.USER_CONFIRMED,
+    sourceIds,
+    confidence: 1,
+    confirmed: true,
+  };
 }
-
-// Only the user-typed location field accepts a bare string. Fact and hotspot
-// items must carry an explicit sourceType, so AI output can never be coerced
-// into a confirmed fact.
-export const nullableSourcedValueSchema = z.preprocess(
-  (input) => (input === undefined || input === null ? null : toSourcedValue(input)),
-  sourcedValueSchema.nullable(),
-);
 
 export const sourcedFactSchema = z.object({
   events: z.array(sourcedValueSchema).default([]),
@@ -74,7 +64,7 @@ export const memorySchema = z
       .regex(/^\d{4}-\d{2}-\d{2}$/, "date must use the YYYY-MM-DD format")
       .nullable()
       .default(null),
-    location: nullableSourcedValueSchema.default(null),
+    location: sourcedValueSchema.nullable().default(null),
     facts: sourcedFactSchema.default(emptyFacts),
     status: memoryStatusSchema.default(MEMORY_STATUS.DRAFT),
     assetIds: z.array(z.string().min(1)).default([]),

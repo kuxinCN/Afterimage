@@ -4,7 +4,12 @@ import { ZodError } from "zod";
 import { SOURCE_TYPES } from "@/lib/constants";
 import { assetSchema } from "@/schemas/assetSchema";
 import { explorationSchema } from "@/schemas/explorationSchema";
-import { memorySchema, sourcedValueSchema } from "@/schemas/memorySchema";
+import {
+  memoryPatchSchema,
+  memorySchema,
+  sourcedValueSchema,
+  userConfirmedValue,
+} from "@/schemas/memorySchema";
 import { sceneSchema } from "@/schemas/sceneSchema";
 import { imageBlob } from "../helpers/data.js";
 
@@ -47,16 +52,29 @@ describe("memorySchema", () => {
     });
   });
 
-  it("treats a plain string location as user confirmed", () => {
-    const parsed = memorySchema.parse(baseMemory({ location: "学校二食堂" }));
+  it("rejects a bare string location instead of guessing where it came from", () => {
+    expect(() => memorySchema.parse(baseMemory({ location: "食堂" }))).toThrow(ZodError);
+  });
+
+  it("only marks a location confirmed through the explicit helper", () => {
+    const parsed = memorySchema.parse(
+      baseMemory({ location: userConfirmedValue("学校二食堂", ["asset-1"]) }),
+    );
 
     expect(parsed.location).toEqual({
       value: "学校二食堂",
       sourceType: SOURCE_TYPES.USER_CONFIRMED,
-      sourceIds: [],
+      sourceIds: ["asset-1"],
       confidence: 1,
       confirmed: true,
     });
+  });
+
+  it("applies the same provenance rule to review patches", () => {
+    expect(() => memoryPatchSchema.parse({ location: "食堂" })).toThrow(ZodError);
+    expect(memoryPatchSchema.parse({ location: userConfirmedValue("食堂") }).location).toMatchObject(
+      { confirmed: true },
+    );
   });
 
   it("keeps an AI inferred location unconfirmed", () => {
