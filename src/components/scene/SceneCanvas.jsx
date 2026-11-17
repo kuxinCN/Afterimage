@@ -40,7 +40,7 @@ const TEMPLATE_PALETTES = {
 
 const FALLBACK_PALETTE = TEMPLATE_PALETTES.generic;
 
-export function SceneCanvas({ scene, visitedHotspots = [], onHotspotClick }) {
+export function SceneCanvas({ scene, visitedHotspots = [], onHotspotClick, selectedHotspotId = null }) {
   if (!scene) {
     return null;
   }
@@ -82,6 +82,7 @@ export function SceneCanvas({ scene, visitedHotspots = [], onHotspotClick }) {
 
       {scene.hotspots.map((hotspot) => {
         const isVisited = visited.has(hotspot.id);
+        const isSelected = hotspot.id === selectedHotspotId;
         const layout = hotspotLayout(hotspot.position, { visited: isVisited });
 
         // Markers are sized against the canvas, not in pixels: the tightest
@@ -96,6 +97,10 @@ export function SceneCanvas({ scene, visitedHotspots = [], onHotspotClick }) {
             title={hotspot.description}
             style={layout}
             className={`group absolute flex aspect-square w-[3.4%] items-center justify-center rounded-full border backdrop-blur-[2px] transition duration-300 hover:border-[#ffd9a0] hover:shadow-[0_0_20px_rgba(255,205,140,0.55)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffd9a0] ${
+              isSelected
+                ? "z-30 scale-125 border-[#ffd9a0] ring-2 ring-[#ffd9a0]/70 ring-offset-2 ring-offset-[#241a12]"
+                : ""
+            } ${
               isVisited
                 ? "border-[#e8b877]/30 bg-[#2a1d13]/70 text-[#f0c987]"
                 : "border-[#ffd9a0]/70 bg-[#ffcf8f]/25 text-[#ffe6bd] shadow-[0_0_16px_rgba(255,190,120,0.45)]"

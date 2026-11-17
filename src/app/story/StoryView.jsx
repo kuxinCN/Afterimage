@@ -7,9 +7,10 @@ import { useEffect } from "react";
 import { ActionChoices } from "@/components/flow/ActionChoices";
 import { FreeActionInput } from "@/components/flow/FreeActionInput";
 import { RequestState } from "@/components/flow/RequestState";
-import { SceneSlot } from "@/components/flow/SceneSlot";
+import { StoryScenePanel } from "@/components/flow/StoryScenePanel";
 import { StoryText } from "@/components/flow/StoryText";
 import { useStoryRequest } from "@/hooks/useStoryRequest";
+import { useStoryScene } from "@/hooks/useStoryScene";
 import { submitAction } from "@/services/api/storyService";
 import { useStoryStore } from "@/store/StoryContext";
 
@@ -22,6 +23,7 @@ export function StoryView() {
   const { state, dispatch } = useStoryStore();
   const { isLoading, error, run, retry } = useStoryRequest();
   const { hydrated, story, history, draft } = state;
+  const { scene, visitedHotspots, onHotspotClick } = useStoryScene(story);
 
   useEffect(() => {
     if (hydrated && !story) {
@@ -76,7 +78,13 @@ export function StoryView() {
 
       <h1 className="text-2xl text-[#efe7d8] sm:text-3xl">{story.title}</h1>
 
-      <SceneSlot />
+      {/* Scene payload + exploration come from the useStoryScene seam, not from
+          the page. C interactive lane currently yields scene=null (placeholder). */}
+      <StoryScenePanel
+        scene={scene}
+        visitedHotspots={visitedHotspots}
+        onHotspotClick={onHotspotClick}
+      />
 
       <RequestState
         isLoading={isLoading}

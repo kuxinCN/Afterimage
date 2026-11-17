@@ -1,0 +1,37 @@
+/* C-side integration skin for A's MemorySpace (A core CSS stays verbatim).
+ * Only touches the bridge host subtree; never restyles C's SceneCanvas.
+ */
+
+.a-bridge {
+  width: 100%;
+}
+
+/* A's .ms hard-sets --ms-scale:1, which would beat an inherited value. This
+ * higher-specificity rule lets the bridge drive card size from a host variable. */
+.a-bridge .ms {
+  --ms-scale: var(--a-frag-scale, 1);
+}
+
+/* Names live in A's detail panel and in C's hotspot list below the scene, so the
+ * inline label is hidden to keep the card footprint small enough to never
+ * overlap on a dense grid. Status chip (icon + text) and aria-label are kept. */
+.a-bridge .mf-label {
+  display: none;
+}
+
+/* Tall stage gives the 8 rows of a 24-hotspot grid room to breathe. */
+.a-bridge--dense .ms {
+  height: 760px;
+}
+
+/* Tailwind preflight resets buttons; restore A's card cursor/box behaviour. */
+.a-bridge .mf {
+  box-sizing: border-box;
+}
+
+/* Option C: C's HotspotDetailPanel is the only detail panel. Suppress A's
+ * built-in .ms-panel unless the host explicitly opts in (sandbox verification).
+ * A still tracks openId internally so the fragment highlight stays in sync. */
+.a-bridge:not(.a-bridge--panel) .ms-panel {
+  display: none;
+}
