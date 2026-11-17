@@ -55,6 +55,15 @@ export function EndingView() {
 
       <StoryText story={story} />
 
+      {draft.text.trim().length > 0 ? (
+        <section className="space-y-2 rounded-xl border border-[#2c2822] bg-[#141210] px-4 py-4">
+          <h2 className="text-sm text-[#c9c0b0]">你写下的经历（用户确认，不属于上面的想象内容）</h2>
+          <p className="whitespace-pre-wrap text-base leading-relaxed text-[#d9d0c0]">
+            {draft.text}
+          </p>
+        </section>
+      ) : null}
+
       <section className="space-y-3 rounded-xl border border-[#2c2822] bg-[#141210] px-4 py-4">
         <h2 className="text-sm text-[#c9c0b0]">最终结果</h2>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">

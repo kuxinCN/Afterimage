@@ -29,6 +29,10 @@ export function useStoryRequest() {
   const controllerRef = useRef(null);
   const lastTaskRef = useRef(null);
   const mountedRef = useRef(true);
+  // A synchronous re-entrancy guard: isLoading only disables the button after a
+  // re-render, so a fast double-click could otherwise start two runs that both
+  // capture the same history and append the action twice.
+  const busyRef = useRef(false);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -40,6 +44,11 @@ export function useStoryRequest() {
   }, []);
 
   const run = useCallback(async (task) => {
+    if (busyRef.current) {
+      return null;
+    }
+
+    busyRef.current = true;
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -69,6 +78,8 @@ export function useStoryRequest() {
       setError(describeError(caught));
 
       return null;
+    } finally {
+      busyRef.current = false;
     }
   }, []);
 
