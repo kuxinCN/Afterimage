@@ -1,13 +1,13 @@
-import { MemoryCreateForm } from "@/components/memory/MemoryCreateForm";
+import { CreateStoryForm } from "@/components/flow/CreateStoryForm";
 
 export const metadata = {
-  title: "创建一段记忆 · 余像 Afterimage",
+  title: "写下一段记忆 · 余像 Afterimage",
 };
 
-export default function CreateMemoryPage() {
+export default function CreatePage() {
   return (
     <main className="min-h-screen bg-[#0f0e0d] font-[family-name:var(--font-geist-sans)]">
-      <MemoryCreateForm />
+      <CreateStoryForm />
     </main>
   );
 }

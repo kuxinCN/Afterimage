@@ -77,6 +77,13 @@ export const ERROR_CODES = {
   SCENE_INVALID_RESULT: "SCENE_INVALID_RESULT",
   SCENE_GENERATION_FAILED: "SCENE_GENERATION_FAILED",
   SCENE_GENERATION_IN_PROGRESS: "SCENE_GENERATION_IN_PROGRESS",
+  API_NETWORK_FAILED: "API_NETWORK_FAILED",
+  API_TIMEOUT: "API_TIMEOUT",
+  API_HTTP_ERROR: "API_HTTP_ERROR",
+  API_INVALID_RESULT: "API_INVALID_RESULT",
+  API_NOT_IMPLEMENTED: "API_NOT_IMPLEMENTED",
+  API_ABORTED: "API_ABORTED",
+  STORY_INPUT_REQUIRED: "STORY_INPUT_REQUIRED",
 };
 
 // Single source of truth for import limits. UI copy reads these values so a
@@ -155,3 +162,33 @@ export const ANALYSIS_LIMITS = {
 export const SCENE_LIMITS = {
   MAX_HOTSPOTS: 24,
 };
+
+// Same-origin on purpose: a cross-origin base URL would push the AI call, and
+// therefore its key, into the browser. Keys stay server-side.
+export const API_BASE_URL = "/api";
+
+export const API_RETRY = {
+  MAX_ATTEMPTS: 3,
+  BASE_DELAY_MS: 300,
+  TIMEOUT_MS: 15000,
+};
+
+export const STORY_LIMITS = {
+  MAX_TITLE_LENGTH: 120,
+  MAX_TEXT_LENGTH: 5000,
+  MAX_FREE_ACTION_LENGTH: 500,
+  MAX_PARAGRAPHS: 12,
+  MAX_PARAGRAPH_LENGTH: 1000,
+  MAX_CHOICES: 4,
+  MAX_CHOICE_LABEL_LENGTH: 60,
+  MAX_HISTORY: 20,
+};
+
+export const STORY_ACTION_TYPES = {
+  CHOICE: "choice",
+  FREE: "free",
+};
+
+export const STORY_STORAGE_KEY = "afterimage.story";
+
+export const STORY_STORAGE_VERSION = 1;

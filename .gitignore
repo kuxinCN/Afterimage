@@ -36,3 +36,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# handoff snapshot artifact (kept locally, not committed)
+afterimage-handoff.md
