@@ -1,5 +1,6 @@
 import { MemoryAnalysisPanel } from "@/components/ai/MemoryAnalysisPanel";
 import { MemoryAssetsViewer } from "@/components/memory/MemoryAssetsViewer";
+import { MemoryDetailGate } from "@/components/memory/MemoryDetailGate";
 import { MemoryScenePanel } from "@/components/scene/MemoryScenePanel";
 
 export const metadata = {
@@ -10,12 +11,14 @@ export default function MemoryDetailPage({ params }) {
   return (
     <main className="min-h-screen bg-[#0f0e0d] font-[family-name:var(--font-geist-sans)]">
       <div className="mx-auto w-full max-w-4xl space-y-10 px-5 py-12 sm:px-8">
-        <a href="/create" className="text-xs text-[#8d8474] hover:text-[#e6ddce]">
-          ← 回到创建页面
+        <a href="/" className="text-xs text-[#8d8474] hover:text-[#e6ddce]">
+          ← 回到记忆列表
         </a>
-        <MemoryAssetsViewer memoryId={params.id} />
-        <MemoryAnalysisPanel memoryId={params.id} />
-        <MemoryScenePanel memoryId={params.id} />
+        <MemoryDetailGate memoryId={params.id}>
+          <MemoryAssetsViewer memoryId={params.id} />
+          <MemoryAnalysisPanel memoryId={params.id} />
+          <MemoryScenePanel memoryId={params.id} />
+        </MemoryDetailGate>
       </div>
     </main>
   );

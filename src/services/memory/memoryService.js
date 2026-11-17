@@ -76,6 +76,16 @@ export async function createMemoryWithImages(input) {
   }
 }
 
+export async function readMemory(memoryId) {
+  const memory = await MemoryRepository.getById(memoryId);
+
+  if (!memory) {
+    throw new StorageError(ERROR_CODES.MEMORY_NOT_FOUND, `Memory ${memoryId} does not exist`);
+  }
+
+  return memory;
+}
+
 export async function readMemoryWithAssets(memoryId) {
   const memory = await MemoryRepository.getById(memoryId);
 
