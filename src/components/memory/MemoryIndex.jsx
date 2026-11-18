@@ -35,7 +35,7 @@ function CreateButton({ children }) {
   return (
     <Link
       href="/memory/new"
-      className="inline-flex items-center gap-2 rounded-full bg-[#e6d5b0] px-6 py-3 text-sm text-[#1a1712] transition-all duration-300 hover:bg-[#f2e3c0] hover:shadow-[0_0_28px_rgba(230,213,176,0.25)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e6d5b0]"
+      className="inline-flex items-center gap-2 rounded-full bg-[#e6d5b0] px-6 py-3 text-sm text-[#1a1712] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#f2e3c0] hover:shadow-[0_0_36px_rgba(230,213,176,0.4)] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e6d5b0]"
     >
       <span aria-hidden className="text-base leading-none">＋</span>
       {children}
@@ -64,7 +64,7 @@ function MemoryCard({ memory, coverUrl, index }) {
     <li className="animate-rise-in" style={{ animationDelay: `${Math.min(index, 8) * 70}ms` }}>
       <Link
         href={`/memory/${memory.id}`}
-        className="group block overflow-hidden rounded-2xl border border-[#2c2822] bg-[#141210] transition-all duration-300 hover:border-[#57503f] hover:shadow-[0_8px_40px_rgba(0,0,0,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e6d5b0]"
+        className="group block overflow-hidden rounded-2xl border border-[#2c2822] bg-[rgba(20,18,16,0.75)] backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:border-[rgba(230,213,176,0.3)] hover:shadow-[0_28px_80px_-30px_rgba(216,168,96,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e6d5b0]"
       >
         <div className="relative aspect-[4/3] overflow-hidden bg-[#0d0c0b]">
           {coverUrl ? (
@@ -129,7 +129,7 @@ function EmptyState() {
         <div className="absolute inset-0 rounded-full border border-[#2c2822]" />
         <div className="absolute inset-5 rounded-full border border-[#3a352c]" />
         <div className="absolute inset-10 rounded-full border border-[#57503f]" />
-        <div className="absolute inset-14 rounded-full bg-[radial-gradient(closest-side,rgba(230,213,176,0.35),transparent)] blur-[3px]" />
+        <div className="hero-ring-glow absolute inset-14 rounded-full bg-[radial-gradient(closest-side,rgba(230,213,176,0.35),transparent)] blur-[3px]" />
       </div>
       <div className="space-y-3">
         <h2 className="text-xl text-[#f2ebdd]">这里还没有留下任何余像</h2>
@@ -232,11 +232,11 @@ export function MemoryIndex() {
   const { status, memories } = state;
 
   return (
-    <div className="space-y-10">
+    <div className="page-in relative space-y-10">
       <header className="animate-rise-in flex flex-wrap items-end justify-between gap-6">
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-[0.28em] text-[#8d8474]">Afterimage</p>
-          <h1 className="text-3xl font-normal text-[#f2ebdd]">余像</h1>
+          <h1 className="title-glow text-3xl font-normal text-[#f2ebdd]">余像</h1>
           <p className="max-w-md text-sm leading-relaxed text-[#9a9082]">
             把真实的生活资料，重构成可以再次进入的记忆空间。
           </p>

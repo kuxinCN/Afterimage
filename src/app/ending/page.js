@@ -1,3 +1,5 @@
+import { PageAtmosphere } from "@/components/visual/PageAtmosphere";
+
 import { EndingView } from "./EndingView";
 
 export const metadata = {
@@ -6,7 +8,8 @@ export const metadata = {
 
 export default function EndingPage() {
   return (
-    <main className="min-h-screen bg-[#0f0e0d] font-[family-name:var(--font-geist-sans)]">
+    <main className="relative min-h-screen overflow-x-clip bg-[#0b0a09] font-[family-name:var(--font-geist-sans)]">
+      <PageAtmosphere tone="story" />
       <EndingView />
     </main>
   );

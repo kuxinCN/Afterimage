@@ -14,7 +14,7 @@ export function RequestState({
       {isLoading ? (
         <p
           role="status"
-          className="flex items-center gap-3 rounded-xl border border-[#33302a] bg-[#141210] px-4 py-3 text-sm text-[#c9c0b0]"
+          className="glass flex items-center gap-3 rounded-xl px-4 py-3 text-sm text-[#c9c0b0]"
         >
           <span aria-hidden="true" className={SPINNER_CLASS} />
           {loadingText}
@@ -24,7 +24,7 @@ export function RequestState({
       {error ? (
         <div
           role="alert"
-          className="space-y-3 rounded-xl border border-[#4a3227] bg-[#1a1412] px-4 py-3"
+          className="space-y-3 rounded-xl border border-[#4a3227] bg-[rgba(26,20,18,0.8)] px-4 py-3 backdrop-blur"
         >
           <p className="text-sm leading-relaxed text-[#e0a98f]">{error.message}</p>
           <p className="text-xs text-[#8d8474]">错误码 {error.code}</p>
@@ -33,7 +33,7 @@ export function RequestState({
               type="button"
               onClick={onRetry}
               disabled={isLoading}
-              className="min-h-[44px] rounded-full border border-[#5a4433] px-5 text-sm text-[#e6d5b0] transition-colors hover:bg-[#241c17] disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-[44px] rounded-full border border-[#5a4433] px-5 text-sm text-[#e6d5b0] transition-all hover:bg-[#241c17] hover:shadow-[0_0_24px_rgba(224,169,143,0.25)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isLoading ? "正在重试…" : "重试"}
             </button>

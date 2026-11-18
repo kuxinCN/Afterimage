@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AfterimageSceneBridge } from "@/components/afterimage/AfterimageSceneBridge";
 import { HotspotDetailPanel } from "@/components/scene/HotspotDetailPanel";
 import { SceneCanvas } from "@/components/scene/SceneCanvas";
+import { SceneRendererPicker } from "@/components/scene/SceneRendererPicker";
 import { ERROR_CODES, MEMORY_STATUS } from "@/lib/constants";
 import { generateScene } from "@/services/ai/aiService";
 import { readScene, visitHotspot } from "@/services/scene/sceneService";
@@ -51,7 +52,7 @@ export function MemoryScenePanel({ memoryId }) {
   const [error, setError] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [reviewOpen, setReviewOpen] = useState(false);
-  // Experimental parallel renderer for A's MemorySpace; C's canvas stays default.
+  // Parallel renderer for A's MemorySpace; C's canvas stays default.
   const [renderer, setRenderer] = useState("canvas");
   const busyRef = useRef(false);
 
@@ -210,51 +211,27 @@ export function MemoryScenePanel({ memoryId }) {
 
       {scene ? (
         <>
-          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="场景渲染器">
-            <span className="text-xs text-[#8d8474]">渲染器：</span>
-            <button
-              type="button"
-              onClick={() => setRenderer("canvas")}
-              aria-pressed={renderer === "canvas"}
-              className={`rounded-full border px-3 py-1 text-xs transition ${
-                renderer === "canvas"
-                  ? "border-[#e8b877]/60 bg-[#2a1d13] text-[#f3e3c8]"
-                  : "border-[#3b2f2a] text-[#9a9082] hover:bg-[#1f1a17]"
-              }`}
-            >
-              C 画布
-            </button>
-            <button
-              type="button"
-              onClick={() => setRenderer("afterimage")}
-              aria-pressed={renderer === "afterimage"}
-              className={`rounded-full border px-3 py-1 text-xs transition ${
-                renderer === "afterimage"
-                  ? "border-[#6fd6ff]/60 bg-[#10202e] text-[#cfeaff]"
-                  : "border-[#3b2f2a] text-[#9a9082] hover:bg-[#1f1a17]"
-              }`}
-            >
-              A 空间（实验）
-            </button>
-          </div>
+          <SceneRendererPicker value={renderer} onChange={setRenderer} />
 
-          {renderer === "afterimage" ? (
-            <AfterimageSceneBridge
-              scene={scene}
-              visitedHotspots={visitedHotspots}
-              onHotspotClick={handleHotspotClick}
-              selectedHotspotId={selectedId}
-              onSelectedChange={setSelectedId}
-              onMountError={handleRendererError}
-            />
-          ) : (
-            <SceneCanvas
-              scene={scene}
-              visitedHotspots={visitedHotspots}
-              onHotspotClick={handleHotspotClick}
-              selectedHotspotId={selectedId}
-            />
-          )}
+          <div key={renderer} className="animate-panel-in">
+            {renderer === "afterimage" ? (
+              <AfterimageSceneBridge
+                scene={scene}
+                visitedHotspots={visitedHotspots}
+                onHotspotClick={handleHotspotClick}
+                selectedHotspotId={selectedId}
+                onSelectedChange={setSelectedId}
+                onMountError={handleRendererError}
+              />
+            ) : (
+              <SceneCanvas
+                scene={scene}
+                visitedHotspots={visitedHotspots}
+                onHotspotClick={handleHotspotClick}
+                selectedHotspotId={selectedId}
+              />
+            )}
+          </div>
           {scene.hotspots.length > 0 ? (
             <ul className="flex flex-wrap gap-2">
               {scene.hotspots.map((hotspot) => {

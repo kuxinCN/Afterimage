@@ -58,7 +58,7 @@ export function ImageDropzone({ onFiles, disabled = false, remainingSlots, maxFi
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         className={[
-          "flex min-h-[132px] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-6 py-8 text-center transition-colors",
+          "flex min-h-[132px] cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-6 py-8 text-center transition-all hover:border-[rgba(230,213,176,0.4)] hover:shadow-[0_0_44px_-12px_rgba(216,168,96,0.35)]",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/40",
           isDragging
             ? "border-amber-200/60 bg-amber-100/5"

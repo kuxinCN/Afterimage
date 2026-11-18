@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { ModeNav } from "@/components/nav/ModeNav";
 import { ImageDropzone } from "@/components/upload/ImageDropzone";
 import { ImagePreviewList } from "@/components/upload/ImagePreviewList";
 import { useImageImport } from "@/hooks/useImageImport";
@@ -126,11 +128,20 @@ export function MemoryCreateForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto w-full max-w-3xl space-y-8 px-5 py-12 sm:px-8"
+      className="page-in relative mx-auto w-full max-w-3xl space-y-8 px-5 py-12 sm:px-8"
     >
+      <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#8d8474]">
+        <Link href="/" className="hover:text-[#e6ddce]">
+          首页
+        </Link>
+        <span className="ml-auto">
+          <ModeNav />
+        </span>
+      </nav>
+
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-[0.28em] text-[#8d8474]">Afterimage</p>
-        <h1 className="text-2xl font-normal text-[#f2ebdd]">创建一段记忆</h1>
+        <h1 className="title-glow text-2xl font-normal text-[#f2ebdd]">创建一段记忆</h1>
         <p className="text-sm text-[#9a9082]">
           照片只保存在这台设备的浏览器里，本阶段还不做内容识别。
         </p>
@@ -160,7 +171,7 @@ export function MemoryCreateForm() {
             maxLength={120}
             required
             placeholder="例如：教室最后一排的那个下午"
-            className="w-full rounded-xl border border-[#33302a] bg-[#141210] px-4 py-3 text-[#efe7d8] placeholder:text-[#6b6459] focus:border-[#57503f] focus:outline-none"
+            className="w-full rounded-xl border border-[#33302a] bg-[rgba(20,18,16,0.7)] px-4 py-3 text-[#efe7d8] backdrop-blur transition-all placeholder:text-[#6b6459] focus:border-[rgba(230,213,176,0.45)] focus:shadow-[0_0_0_3px_rgba(230,213,176,0.08)] focus:outline-none"
           />
         </label>
 
@@ -172,7 +183,7 @@ export function MemoryCreateForm() {
             maxLength={5000}
             rows={4}
             placeholder="当时发生了什么？只写你记得的。"
-            className="w-full resize-y rounded-xl border border-[#33302a] bg-[#141210] px-4 py-3 text-[#efe7d8] placeholder:text-[#6b6459] focus:border-[#57503f] focus:outline-none"
+            className="w-full resize-y rounded-xl border border-[#33302a] bg-[rgba(20,18,16,0.7)] px-4 py-3 text-[#efe7d8] backdrop-blur transition-all placeholder:text-[#6b6459] focus:border-[rgba(230,213,176,0.45)] focus:shadow-[0_0_0_3px_rgba(230,213,176,0.08)] focus:outline-none"
           />
         </label>
 
@@ -183,7 +194,7 @@ export function MemoryCreateForm() {
               type="date"
               value={date}
               onChange={(event) => setDate(event.target.value)}
-              className="w-full rounded-xl border border-[#33302a] bg-[#141210] px-4 py-3 text-[#efe7d8] focus:border-[#57503f] focus:outline-none"
+              className="w-full rounded-xl border border-[#33302a] bg-[rgba(20,18,16,0.7)] px-4 py-3 text-[#efe7d8] backdrop-blur transition-all focus:border-[rgba(230,213,176,0.45)] focus:shadow-[0_0_0_3px_rgba(230,213,176,0.08)] focus:outline-none"
             />
           </label>
           <label className="block space-y-2">
@@ -193,7 +204,7 @@ export function MemoryCreateForm() {
               onChange={(event) => setLocation(event.target.value)}
               maxLength={120}
               placeholder="例如：老校区食堂二楼"
-              className="w-full rounded-xl border border-[#33302a] bg-[#141210] px-4 py-3 text-[#efe7d8] placeholder:text-[#6b6459] focus:border-[#57503f] focus:outline-none"
+              className="w-full rounded-xl border border-[#33302a] bg-[rgba(20,18,16,0.7)] px-4 py-3 text-[#efe7d8] backdrop-blur transition-all placeholder:text-[#6b6459] focus:border-[rgba(230,213,176,0.45)] focus:shadow-[0_0_0_3px_rgba(230,213,176,0.08)] focus:outline-none"
             />
           </label>
         </div>
@@ -204,7 +215,7 @@ export function MemoryCreateForm() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="rounded-full bg-[#e6d5b0] px-6 py-3 text-sm text-[#1a1712] transition-colors hover:bg-[#f2e3c0] disabled:cursor-not-allowed disabled:bg-[#3a352c] disabled:text-[#8d8474]"
+            className="rounded-full bg-[#e6d5b0] px-6 py-3 text-sm text-[#1a1712] transition-all hover:bg-[#f2e3c0] hover:shadow-[0_0_32px_rgba(230,213,176,0.35)] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#3a352c] disabled:text-[#8d8474] disabled:shadow-none"
           >
             {isSaving ? "正在保存记忆…" : isReading ? "正在读取图片…" : "保存这段记忆"}
           </button>

@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { RequestState } from "@/components/flow/RequestState";
+import { ModeNav } from "@/components/nav/ModeNav";
 import { ImageDropzone } from "@/components/upload/ImageDropzone";
 import { ImagePreviewList } from "@/components/upload/ImagePreviewList";
 import { useImageImport } from "@/hooks/useImageImport";
@@ -76,11 +78,20 @@ function StoryFormFields({ initialDraft }) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto w-full max-w-3xl space-y-8 px-4 py-10 sm:px-8 sm:py-12"
+      className="page-in relative mx-auto w-full max-w-3xl space-y-8 px-4 py-10 sm:px-8 sm:py-12"
     >
+      <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#8d8474]">
+        <Link href="/" className="hover:text-[#e6ddce]">
+          首页
+        </Link>
+        <span className="ml-auto">
+          <ModeNav />
+        </span>
+      </nav>
+
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-[0.28em] text-[#8d8474]">Afterimage</p>
-        <h1 className="text-2xl font-normal text-[#f2ebdd]">写下一段记忆</h1>
+        <h1 className="title-glow text-2xl font-normal text-[#f2ebdd]">写下一段记忆</h1>
         <p className="text-sm leading-relaxed text-[#9a9082]">
           文字必填，照片可选。生成后进入故事页，当前故事内容由 Mock 提供。
         </p>
@@ -95,7 +106,7 @@ function StoryFormFields({ initialDraft }) {
             maxLength={STORY_LIMITS.MAX_TITLE_LENGTH}
             required
             placeholder="例如：教室最后一排的那个下午"
-            className="w-full rounded-xl border border-[#33302a] bg-[#141210] px-4 py-3 text-base text-[#efe7d8] placeholder:text-[#6b6459] focus:border-[#57503f] focus:outline-none"
+            className="w-full rounded-xl border border-[#33302a] bg-[rgba(20,18,16,0.7)] px-4 py-3 text-base text-[#efe7d8] backdrop-blur transition-all placeholder:text-[#6b6459] focus:border-[rgba(230,213,176,0.45)] focus:shadow-[0_0_0_3px_rgba(230,213,176,0.08)] focus:outline-none"
           />
         </label>
 
@@ -108,7 +119,7 @@ function StoryFormFields({ initialDraft }) {
             required
             rows={5}
             placeholder="当时发生了什么？只写你记得的。"
-            className="w-full resize-y rounded-xl border border-[#33302a] bg-[#141210] px-4 py-3 text-base leading-relaxed text-[#efe7d8] placeholder:text-[#6b6459] focus:border-[#57503f] focus:outline-none"
+            className="w-full resize-y rounded-xl border border-[#33302a] bg-[rgba(20,18,16,0.7)] px-4 py-3 text-base leading-relaxed text-[#efe7d8] backdrop-blur transition-all placeholder:text-[#6b6459] focus:border-[rgba(230,213,176,0.45)] focus:shadow-[0_0_0_3px_rgba(230,213,176,0.08)] focus:outline-none"
           />
           <span className="block text-xs text-[#7c7466]">
             {text.length} / {STORY_LIMITS.MAX_TEXT_LENGTH}
@@ -153,7 +164,7 @@ function StoryFormFields({ initialDraft }) {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="min-h-[44px] w-full rounded-full bg-[#e6d5b0] px-6 text-base text-[#1a1712] transition-colors hover:bg-[#f2e3c0] disabled:cursor-not-allowed disabled:bg-[#3a352c] disabled:text-[#8d8474] sm:w-auto"
+          className="min-h-[44px] w-full rounded-full bg-[#e6d5b0] px-6 text-base text-[#1a1712] transition-all hover:bg-[#f2e3c0] hover:shadow-[0_0_32px_rgba(230,213,176,0.35)] active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#3a352c] disabled:text-[#8d8474] disabled:shadow-none sm:w-auto"
         >
           {isLoading ? "正在生成…" : isReading ? "正在读取图片…" : "生成故事"}
         </button>

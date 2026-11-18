@@ -7,6 +7,19 @@ import {
 import { ApiError, request } from "./client";
 import { buildMockActionStory, buildMockOpeningStory } from "./mockStoryData";
 
+// Presentation helpers for the Mock lane, surfaced through the service seam so
+// pages never import the provider directly. A real AI lane would supply its own
+// labels/review behind these same names.
+export {
+  buildEndingReview,
+  classifyActionIntent,
+  classifyFreeTextIntent,
+  describeTrajectory,
+  ENDING_META,
+  getChoiceLabel,
+  INTENT_META,
+} from "./mockStoryData";
+
 // Flip useMock to false once B's server route is real. The signatures and the
 // returned shape stay identical, so no page has to change. Deliberately not an
 // env var: a NEXT_PUBLIC_ switch would sit next to the place keys must never go.

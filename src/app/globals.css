@@ -92,3 +92,350 @@ html {
     animation: none;
   }
 }
+
+/* Cinematic atmosphere layer: depth gradients, drifting light, dust. */
+.atmo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.atmo-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.atmo-orb-a {
+  animation: atmo-drift-a 26s ease-in-out infinite;
+}
+
+.atmo-orb-b {
+  animation: atmo-drift-b 34s ease-in-out infinite;
+}
+
+.atmo-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 38%, transparent 42%, rgba(4, 3, 2, 0.6) 100%);
+}
+
+@keyframes atmo-drift-a {
+  0%,
+  100% {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, 3%, 0) scale(1.1);
+  }
+}
+
+@keyframes atmo-drift-b {
+  0%,
+  100% {
+    transform: translate3d(2%, 3%, 0) scale(1.05);
+  }
+  50% {
+    transform: translate3d(-4%, -2%, 0) scale(0.95);
+  }
+}
+
+.dust {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 9999px;
+  background: rgba(232, 205, 150, 0.75);
+  filter: blur(0.5px);
+  opacity: 0;
+  animation: dust-rise linear infinite;
+}
+
+@keyframes dust-rise {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--dust-o, 0.4);
+  }
+  85% {
+    opacity: var(--dust-o, 0.4);
+  }
+  100% {
+    transform: translate3d(16px, -44vh, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-in {
+  animation: page-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.title-glow {
+  text-shadow:
+    0 0 32px rgba(230, 213, 176, 0.22),
+    0 0 90px rgba(216, 168, 96, 0.14);
+}
+
+.glass {
+  background: rgba(18, 16, 13, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(230, 213, 176, 0.08);
+}
+
+@keyframes glow-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+.hero-ring-glow {
+  animation: glow-breathe 9s ease-in-out infinite;
+}
+
+/* Memory portal: a warm room with window light and floating frames. */
+.scene-memory {
+  background:
+    radial-gradient(90% 70% at 78% 14%, rgba(216, 168, 96, 0.3), transparent 62%),
+    radial-gradient(60% 45% at 16% 88%, rgba(122, 84, 48, 0.28), transparent 72%),
+    linear-gradient(180deg, #181310 0%, #0e0c0a 55%, #090807 100%);
+}
+
+.portal-beam {
+  position: absolute;
+  top: -12%;
+  right: 10%;
+  width: 40%;
+  height: 125%;
+  background: linear-gradient(
+    200deg,
+    rgba(236, 200, 134, 0.34),
+    rgba(236, 200, 134, 0.06) 55%,
+    transparent 78%
+  );
+  transform: skewX(-14deg);
+  filter: blur(6px);
+  animation: beam-sway 18s ease-in-out infinite;
+}
+
+@keyframes beam-sway {
+  0%,
+  100% {
+    transform: skewX(-14deg) translateX(0);
+  }
+  50% {
+    transform: skewX(-11deg) translateX(12px);
+  }
+}
+
+.portal-frame {
+  position: absolute;
+  border-radius: 10px;
+  border: 1px solid rgba(230, 213, 176, 0.28);
+  background:
+    linear-gradient(160deg, rgba(230, 213, 176, 0.16), rgba(122, 84, 48, 0.1) 60%, rgba(20, 16, 12, 0.4)),
+    rgba(24, 19, 14, 0.6);
+  box-shadow: 0 18px 50px -18px rgba(0, 0, 0, 0.8);
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Story portal: a glowing door in a dark parallel space. */
+.scene-story {
+  background:
+    radial-gradient(70% 52% at 50% 26%, rgba(230, 213, 176, 0.14), transparent 66%),
+    radial-gradient(95% 70% at 50% 112%, rgba(62, 52, 88, 0.38), transparent 72%),
+    linear-gradient(180deg, #101015 0%, #0b0a0d 60%, #080709 100%);
+}
+
+.portal-door {
+  position: absolute;
+  left: 50%;
+  top: 12%;
+  width: 72px;
+  height: 62%;
+  transform: translateX(-50%);
+  border-radius: 40px 40px 6px 6px;
+  background: linear-gradient(
+    180deg,
+    rgba(248, 236, 208, 0.95),
+    rgba(230, 190, 120, 0.55) 45%,
+    rgba(230, 190, 120, 0.1)
+  );
+  box-shadow:
+    0 0 40px 12px rgba(230, 190, 120, 0.35),
+    0 0 130px 44px rgba(230, 190, 120, 0.14);
+  animation: door-breathe 7s ease-in-out infinite;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes door-breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.portal-door-halo {
+  position: absolute;
+  left: 50%;
+  top: 16%;
+  width: 220px;
+  height: 62%;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: radial-gradient(closest-side, rgba(230, 190, 120, 0.22), transparent 72%);
+  filter: blur(18px);
+}
+
+.portal-floor {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 42%;
+  background: radial-gradient(62% 46% at 50% 100%, rgba(230, 190, 120, 0.2), transparent 72%);
+}
+
+.portal-spark {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(240, 220, 176, 0.8);
+  filter: blur(1px);
+  animation: glow-breathe 5s ease-in-out infinite;
+}
+
+@media (max-width: 640px) {
+  .dust {
+    display: none;
+  }
+
+  .atmo-orb {
+    filter: blur(48px);
+  }
+
+  .portal-door {
+    width: 56px;
+  }
+}
+
+/* Scene-experience picker previews: miniature C canvas / A memory space. */
+@keyframes picker-float {
+  from {
+    transform: translateY(-3px);
+  }
+  to {
+    transform: translateY(3px);
+  }
+}
+
+.picker-float {
+  animation: picker-float 5.5s ease-in-out infinite alternate;
+}
+
+@keyframes picker-breathe {
+  from {
+    opacity: 0.26;
+  }
+  to {
+    opacity: 0.5;
+  }
+}
+
+.picker-breathe {
+  animation: picker-breathe 7s ease-in-out infinite alternate;
+}
+
+@keyframes picker-twinkle {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.picker-twinkle {
+  animation: picker-twinkle 5.5s ease-in-out infinite alternate;
+}
+
+@keyframes picker-drift {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.55;
+  }
+  85% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(6px, -34px);
+    opacity: 0;
+  }
+}
+
+.picker-mote {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(255, 240, 210, 0.95) 0%, rgba(255, 240, 210, 0) 72%);
+  opacity: 0;
+  animation: picker-drift 6s linear infinite;
+}
+
+@media (max-width: 640px) {
+  .picker-mote {
+    display: none;
+  }
+}
+
+/* Must stay last: equal-specificity animation rules above would otherwise win. */
+@media (prefers-reduced-motion: reduce) {
+  .atmo-orb-a,
+  .atmo-orb-b,
+  .portal-beam,
+  .portal-door,
+  .portal-spark,
+  .hero-ring-glow,
+  .page-in,
+  .animate-rise-in,
+  .animate-panel-in,
+  .picker-float,
+  .picker-breathe,
+  .picker-twinkle,
+  .picker-mote {
+    animation: none;
+  }
+
+  .dust {
+    display: none;
+  }
+
+  .picker-mote {
+    opacity: 0.35;
+  }
+}

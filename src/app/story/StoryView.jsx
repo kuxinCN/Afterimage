@@ -9,14 +9,16 @@ import { FreeActionInput } from "@/components/flow/FreeActionInput";
 import { RequestState } from "@/components/flow/RequestState";
 import { StoryScenePanel } from "@/components/flow/StoryScenePanel";
 import { StoryText } from "@/components/flow/StoryText";
+import { ModeNav } from "@/components/nav/ModeNav";
 import { useStoryRequest } from "@/hooks/useStoryRequest";
 import { useStoryScene } from "@/hooks/useStoryScene";
-import { submitAction } from "@/services/api/storyService";
+import {
+  describeTrajectory,
+  ENDING_META,
+  INTENT_META,
+  submitAction,
+} from "@/services/api/storyService";
 import { useStoryStore } from "@/store/StoryContext";
-
-function describeAction(action) {
-  return action.type === "choice" ? `选择 ${action.choiceId}` : `自由输入：${action.text}`;
-}
 
 export function StoryView() {
   const router = useRouter();
@@ -38,6 +40,8 @@ export function StoryView() {
   if (!story) {
     return <p className="px-4 py-10 text-sm text-[#8d8474] sm:px-8">还没有故事，正在回到输入页…</p>;
   }
+
+  const trajectory = describeTrajectory(history);
 
   async function advance(action, signal) {
     const { story: next } = await submitAction(
@@ -65,7 +69,7 @@ export function StoryView() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-8 px-4 py-10 sm:px-8 sm:py-12">
+    <div className="page-in relative mx-auto w-full max-w-3xl space-y-8 px-4 py-10 sm:px-8 sm:py-12">
       <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#8d8474]">
         <Link href="/" className="hover:text-[#e6ddce]">
           首页
@@ -74,9 +78,18 @@ export function StoryView() {
           ← 回到输入页
         </Link>
         <span>第 {history.length + 1} 段</span>
+        <span className="ml-auto">
+          <ModeNav />
+        </span>
       </nav>
 
-      <h1 className="text-2xl text-[#efe7d8] sm:text-3xl">{story.title}</h1>
+      <header className="space-y-2">
+        <h1 className="title-glow text-2xl text-[#efe7d8] sm:text-3xl">{story.title}</h1>
+        <p className="text-xs text-[#8d8474]">
+          当前走向：{ENDING_META[trajectory.leading].title} · 共 {history.length} 步 ·
+          仍可达 {trajectory.reachable.length} 种结局
+        </p>
+      </header>
 
       {/* Scene payload + exploration come from the useStoryScene seam, not from
           the page. C interactive lane currently yields scene=null (placeholder). */}
@@ -99,7 +112,7 @@ export function StoryView() {
         <button
           type="button"
           onClick={() => router.push("/ending")}
-          className="min-h-[44px] w-full rounded-full bg-[#e6d5b0] px-6 text-base text-[#1a1712] transition-colors hover:bg-[#f2e3c0] sm:w-auto"
+          className="min-h-[44px] w-full rounded-full bg-[#e6d5b0] px-6 text-base text-[#1a1712] transition-all hover:bg-[#f2e3c0] hover:shadow-[0_0_32px_rgba(230,213,176,0.35)] active:scale-[0.98] sm:w-auto"
         >
           查看结尾
         </button>
@@ -127,9 +140,13 @@ export function StoryView() {
         <section className="space-y-2">
           <h3 className="text-xs text-[#8d8474]">已走过的行动（{history.length}）</h3>
           <ol className="space-y-1 text-sm text-[#9a9082]">
-            {history.map((action, index) => (
-              <li key={`${index}-${action.type}`}>
-                {index + 1}. {describeAction(action)}
+            {trajectory.steps.map((step) => (
+              <li key={step.index}>
+                {step.index}.{" "}
+                {step.kind === "choice" ? `选择「${step.label}」` : `自由输入：${step.input}`}
+                <span className="ml-1 text-xs text-[#6b6459]">
+                  （{INTENT_META[step.intent].label}）
+                </span>
               </li>
             ))}
           </ol>

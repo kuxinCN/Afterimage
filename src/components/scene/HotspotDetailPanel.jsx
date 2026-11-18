@@ -105,7 +105,7 @@ export function HotspotDetailPanel({ hotspot, visited = false, onClose, classNam
   return (
     <section
       aria-labelledby={headingId}
-      className={`space-y-3 rounded-2xl border border-[#3a342c] bg-[#161412] px-4 py-4 sm:px-5 ${className}`}
+      className={`glass space-y-3 rounded-2xl px-4 py-4 shadow-[0_24px_70px_-30px_rgba(0,0,0,0.9)] sm:px-5 ${className}`}
     >
       <header className="flex items-start justify-between gap-3">
         <div className="space-y-2">
