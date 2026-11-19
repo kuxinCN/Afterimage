@@ -1,5 +1,4 @@
 import { HomeEntries } from "@/components/home/HomeEntries";
-import { ModeNav } from "@/components/nav/ModeNav";
 import { PageAtmosphere } from "@/components/visual/PageAtmosphere";
 
 export const metadata = {
@@ -23,18 +22,10 @@ const PRINCIPLES = [
 
 export default function HomePage() {
   return (
-    <main className="relative min-h-screen overflow-x-clip bg-[#0b0a09] font-[family-name:var(--font-geist-sans)]">
+    <main className="relative min-h-[calc(100vh-3.5rem)] overflow-x-clip bg-[#0b0a09] font-[family-name:var(--font-geist-sans)]">
       <PageAtmosphere tone="home" />
 
       <div className="page-in relative mx-auto w-full max-w-6xl px-5 sm:px-8">
-        <header className="flex flex-wrap items-center justify-between gap-4 py-7">
-          <p className="text-xs uppercase tracking-[0.34em] text-[#c9c0b0]">
-            Afterimage
-            <span aria-hidden className="ml-3 inline-block h-1 w-1 rounded-full bg-[#e6d5b0] shadow-[0_0_10px_rgba(230,213,176,0.9)] align-middle" />
-          </p>
-          <ModeNav />
-        </header>
-
         <section className="relative flex flex-col items-center gap-6 pb-20 pt-16 text-center sm:pb-24 sm:pt-24">
           <div aria-hidden className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="hero-ring-glow absolute h-[420px] w-[420px] rounded-full bg-[radial-gradient(closest-side,rgba(216,168,96,0.16),transparent_72%)] blur-[6px] sm:h-[560px] sm:w-[560px]" />

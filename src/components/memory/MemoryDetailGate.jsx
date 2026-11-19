@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { ERROR_CODES } from "@/lib/constants";
@@ -51,12 +52,12 @@ export function MemoryDetailGate({ memoryId, children }) {
         <p className="text-sm text-[#8d8474]">
           {notFound ? "它可能已经被删除，或者链接有误。" : state.message}
         </p>
-        <a
+        <Link
           href="/"
           className="inline-block rounded-full border border-[#3b352c] px-5 py-2 text-sm text-[#e6ddce] hover:bg-[#1f1a17]"
         >
           返回首页
-        </a>
+        </Link>
       </section>
     );
   }

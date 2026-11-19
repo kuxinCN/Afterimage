@@ -2,28 +2,71 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
+import { ActionTimeline } from "@/components/flow/ActionTimeline";
 import { StoryText } from "@/components/flow/StoryText";
-import { ModeNav } from "@/components/nav/ModeNav";
+import { toneStyle } from "@/components/flow/storyTones";
 import {
   buildEndingReview,
   describeTrajectory,
   ENDING_META,
-  INTENT_META,
 } from "@/services/api/storyService";
+import { readMemory } from "@/services/memory/memoryService";
+import {
+  clearStoryOrigin,
+  readStoryOrigin,
+  resolveStoryOrigin,
+} from "@/services/story/storyOrigin";
 import { useStoryStore } from "@/store/StoryContext";
 
 export function EndingView() {
   const router = useRouter();
   const { state, dispatch } = useStoryStore();
   const { hydrated, story, history, draft } = state;
+  const [origin, setOrigin] = useState(null);
+  const [sourceAlive, setSourceAlive] = useState(false);
+
+  // sessionStorage is a side effect, so the origin marker is read in an
+  // effect rather than during render.
+  useEffect(() => {
+    setOrigin(hydrated && story ? resolveStoryOrigin(readStoryOrigin(), story.id) : null);
+  }, [hydrated, story]);
+
+  const originMemoryId = origin?.memoryId ?? null;
 
   useEffect(() => {
     if (hydrated && !story) {
       router.replace("/create");
     }
   }, [hydrated, story, router]);
+
+  // The shortcut is offered only while the source memory still exists; a
+  // deleted memory degrades to the plain memory-space link.
+  useEffect(() => {
+    if (!originMemoryId) {
+      setSourceAlive(false);
+      return;
+    }
+
+    let active = true;
+
+    readMemory(originMemoryId)
+      .then(() => {
+        if (active) {
+          setSourceAlive(true);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setSourceAlive(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [originMemoryId]);
 
   if (!hydrated) {
     return <p className="px-4 py-10 text-sm text-[#8d8474] sm:px-8">正在恢复本地进度…</p>;
@@ -34,34 +77,47 @@ export function EndingView() {
   }
 
   function handleRestart() {
+    clearStoryOrigin();
     dispatch({ type: "reset" });
     router.push("/create");
   }
 
   const review = buildEndingReview(history);
   const trajectory = describeTrajectory(history);
+  const endingTone = toneStyle(ENDING_META[review.ending].tone);
 
   return (
     <div className="page-in relative mx-auto w-full max-w-3xl space-y-8 px-4 py-10 sm:px-8 sm:py-12">
       <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#8d8474]">
-        <Link href="/" className="hover:text-[#e6ddce]">
-          首页
-        </Link>
         <Link href="/story" className="hover:text-[#e6ddce]">
           ← 回到故事页
         </Link>
-        <span className="ml-auto">
-          <ModeNav />
-        </span>
       </nav>
 
-      <header className="space-y-2">
+      <header className="space-y-4">
         <p className="text-xs uppercase tracking-[0.28em] text-[#8d8474]">Afterimage</p>
         <h1 className="title-glow text-2xl font-normal text-[#f2ebdd]">
           {story.isEnding ? "走到结尾" : "故事还没有走到结尾"}
         </h1>
         {story.isEnding ? (
-          <p className="text-sm text-[#d8c49a]">本次结局 · {ENDING_META[review.ending].title}</p>
+          <p
+            className="seal-in inline-flex items-center gap-3 rounded-full border px-5 py-2.5 text-sm"
+            style={{
+              color: endingTone.text,
+              borderColor: endingTone.border,
+              background: endingTone.surface,
+              boxShadow: `0 0 36px -6px ${endingTone.glow}`,
+            }}
+          >
+            <span
+              aria-hidden="true"
+              className="flex h-6 w-6 items-center justify-center rounded-full border text-xs"
+              style={{ borderColor: endingTone.border }}
+            >
+              ◈
+            </span>
+            本次结局 · {ENDING_META[review.ending].title}
+          </p>
         ) : null}
       </header>
 
@@ -104,28 +160,12 @@ export function EndingView() {
       </section>
 
       {history.length > 0 ? (
-        <section className="space-y-2">
+        <section className="space-y-3">
           <h2 className="text-sm text-[#c9c0b0]">行动回顾</h2>
-          <ol className="space-y-2 text-sm text-[#9a9082]">
-            {trajectory.steps.map((step) => {
-              const outcome = review.steps[step.index - 1]?.outcome;
-
-              return (
-                <li key={step.index}>
-                  <span className="block">
-                    {step.index}.{" "}
-                    {step.kind === "choice" ? `选择「${step.label}」` : `自由输入：${step.input}`}
-                    <span className="ml-1 text-xs text-[#6b6459]">
-                      （{INTENT_META[step.intent].label}）
-                    </span>
-                  </span>
-                  {outcome ? (
-                    <span className="block text-xs leading-relaxed text-[#7c7466]">{outcome}</span>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ol>
+          <ActionTimeline
+            steps={trajectory.steps}
+            outcomes={review.steps.map((step) => step.outcome)}
+          />
           {story.isEnding ? (
             <p className="glass rounded-xl px-4 py-3 text-xs leading-relaxed text-[#8d8474]">
               {review.endingNote}
@@ -153,6 +193,29 @@ export function EndingView() {
             继续这个故事
           </button>
         ) : null}
+      </section>
+
+      <section className="space-y-3 glass rounded-xl px-4 py-4">
+        <h2 className="text-sm text-[#c9c0b0]">回到记忆空间</h2>
+        <p className="text-xs leading-relaxed text-[#8d8474]">
+          这条故事是想象内容，不会保存为真实记忆。你的记忆档案仍在记忆空间里，随时可以回去。
+        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Link
+            href="/memory"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-[#3a342c] px-6 text-sm text-[#efe7d8] transition-all hover:border-[rgba(230,213,176,0.35)] hover:bg-[#1d1a16] hover:shadow-[0_0_28px_rgba(230,213,176,0.2)] active:scale-[0.98]"
+          >
+            回到记忆空间
+          </Link>
+          {origin && sourceAlive ? (
+            <Link
+              href={`/memory/${origin.memoryId}`}
+              className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-[rgba(230,213,176,0.35)] bg-[rgba(230,213,176,0.06)] px-6 text-sm text-[#e6d5b0] transition-all hover:border-[rgba(230,213,176,0.6)] hover:bg-[rgba(230,213,176,0.12)] hover:shadow-[0_0_28px_rgba(230,213,176,0.18)] active:scale-[0.98]"
+            >
+              回到来源记忆「{origin.memoryTitle}」
+            </Link>
+          ) : null}
+        </div>
       </section>
 
       <p className="text-xs text-[#6b6459]">

@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { ModeNav } from "@/components/nav/ModeNav";
 import { ImageDropzone } from "@/components/upload/ImageDropzone";
 import { ImagePreviewList } from "@/components/upload/ImagePreviewList";
 import { useImageImport } from "@/hooks/useImageImport";
@@ -73,6 +71,9 @@ export function MemoryCreateForm() {
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState(null);
   const [storage, setStorage] = useState(null);
+  // disabled only applies after a re-render; a fast double-click could
+  // otherwise start two saves of the same memory before the first lands.
+  const savingRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -94,6 +95,10 @@ export function MemoryCreateForm() {
   async function handleSubmit(event) {
     event.preventDefault();
 
+    if (savingRef.current) {
+      return;
+    }
+
     if (!canSubmit) {
       setStatus("error");
       setMessage(
@@ -104,6 +109,7 @@ export function MemoryCreateForm() {
       return;
     }
 
+    savingRef.current = true;
     setStatus("saving");
     setMessage(null);
 
@@ -120,6 +126,7 @@ export function MemoryCreateForm() {
 
       router.push(`/memory/${memory.id}`);
     } catch (error) {
+      savingRef.current = false;
       setStatus("error");
       setMessage(describeSaveError(error));
     }
@@ -130,15 +137,6 @@ export function MemoryCreateForm() {
       onSubmit={handleSubmit}
       className="page-in relative mx-auto w-full max-w-3xl space-y-8 px-5 py-12 sm:px-8"
     >
-      <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#8d8474]">
-        <Link href="/" className="hover:text-[#e6ddce]">
-          首页
-        </Link>
-        <span className="ml-auto">
-          <ModeNav />
-        </span>
-      </nav>
-
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-[0.28em] text-[#8d8474]">Afterimage</p>
         <h1 className="title-glow text-2xl font-normal text-[#f2ebdd]">创建一段记忆</h1>
@@ -150,7 +148,7 @@ export function MemoryCreateForm() {
       <section className="space-y-3">
         <ImageDropzone
           onFiles={addFiles}
-          disabled={!canAddMore || isSaving}
+          disabled={!canAddMore || isSaving || isReading}
           remainingSlots={remainingSlots}
           maxFiles={maxFiles}
         />

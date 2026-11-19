@@ -1,17 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { RequestState } from "@/components/flow/RequestState";
-import { ModeNav } from "@/components/nav/ModeNav";
 import { ImageDropzone } from "@/components/upload/ImageDropzone";
 import { ImagePreviewList } from "@/components/upload/ImagePreviewList";
 import { useImageImport } from "@/hooks/useImageImport";
 import { useStoryRequest } from "@/hooks/useStoryRequest";
 import { STORY_LIMITS } from "@/lib/constants";
 import { generateStory } from "@/services/api/storyService";
+import { attachStoryOrigin } from "@/services/story/storyOrigin";
 import { useStoryStore } from "@/store/StoryContext";
 
 // Only metadata leaves the form. The File itself stays on the device, so no
@@ -50,6 +49,7 @@ function StoryFormFields({ initialDraft }) {
   async function startStory(draft, signal) {
     const { story } = await generateStory(draft, { signal });
 
+    attachStoryOrigin(story.id);
     dispatch({ type: "startStory", story });
     router.push("/story");
 
@@ -80,15 +80,6 @@ function StoryFormFields({ initialDraft }) {
       onSubmit={handleSubmit}
       className="page-in relative mx-auto w-full max-w-3xl space-y-8 px-4 py-10 sm:px-8 sm:py-12"
     >
-      <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#8d8474]">
-        <Link href="/" className="hover:text-[#e6ddce]">
-          首页
-        </Link>
-        <span className="ml-auto">
-          <ModeNav />
-        </span>
-      </nav>
-
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-[0.28em] text-[#8d8474]">Afterimage</p>
         <h1 className="title-glow text-2xl font-normal text-[#f2ebdd]">写下一段记忆</h1>
@@ -134,7 +125,7 @@ function StoryFormFields({ initialDraft }) {
         </div>
         <ImageDropzone
           onFiles={addFiles}
-          disabled={!canAddMore || isLoading}
+          disabled={!canAddMore || isLoading || isReading}
           remainingSlots={remainingSlots}
           maxFiles={maxFiles}
         />

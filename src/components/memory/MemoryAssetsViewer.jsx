@@ -13,7 +13,7 @@ const READ_MESSAGES = {
   [ERROR_CODES.STORAGE_FAILED]: "本地数据读取失败，请刷新页面重试。",
 };
 
-function AssetCard({ asset, previewUrl, onRemove, isRemoving }) {
+function AssetCard({ asset, previewUrl, onRemove, isRemoving, isConfirming, onAskRemove, onCancelRemove }) {
   return (
     <li className="overflow-hidden rounded-xl border border-[#2c2822] bg-[#141210]">
       <div className="flex h-40 items-center justify-center bg-[#0d0c0b]">
@@ -33,14 +33,36 @@ function AssetCard({ asset, previewUrl, onRemove, isRemoving }) {
           {asset.width && asset.height ? ` · ${asset.width} × ${asset.height}` : ""} ·{" "}
           {asset.mimeType}
         </p>
-        <button
-          type="button"
-          onClick={() => onRemove(asset.id)}
-          disabled={isRemoving}
-          className="mt-1 rounded-full border border-[#3b2f2a] px-3 py-1 text-xs text-[#d8b8a4] hover:bg-[#1f1a17] disabled:opacity-50"
-        >
-          {isRemoving ? "正在删除…" : "删除这张"}
-        </button>
+        {isConfirming ? (
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onRemove(asset.id)}
+              disabled={isRemoving}
+              className="rounded-full border border-[#7a4a3a] bg-[rgba(160,80,56,0.16)] px-3 py-1 text-xs text-[#e8b39c] transition-colors hover:bg-[rgba(160,80,56,0.3)] disabled:opacity-50"
+            >
+              {isRemoving ? "正在删除…" : "确认删除"}
+            </button>
+            <button
+              type="button"
+              onClick={onCancelRemove}
+              disabled={isRemoving}
+              className="rounded-full border border-[#3b352c] px-3 py-1 text-xs text-[#c9c0b0] hover:bg-[#1f1a17] disabled:opacity-50"
+            >
+              取消
+            </button>
+            <span className="text-xs text-[#8d8474]">删除后无法恢复</span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onAskRemove(asset.id)}
+            disabled={isRemoving}
+            className="mt-1 rounded-full border border-[#3b2f2a] px-3 py-1 text-xs text-[#d8b8a4] hover:bg-[#1f1a17] disabled:opacity-50"
+          >
+            删除这张
+          </button>
+        )}
       </div>
     </li>
   );
@@ -51,7 +73,9 @@ export function MemoryAssetsViewer({ memoryId }) {
   const [previews, setPreviews] = useState({});
   const [error, setError] = useState(null);
   const [pendingRemoval, setPendingRemoval] = useState(null);
+  const [confirmingId, setConfirmingId] = useState(null);
   const registryRef = useRef(null);
+  const mountedRef = useRef(true);
 
   if (!registryRef.current) {
     registryRef.current = createPreviewRegistry();
@@ -62,12 +86,22 @@ export function MemoryAssetsViewer({ memoryId }) {
   useEffect(() => {
     const registry = registryRef.current;
 
-    return () => registry.releaseAll();
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+      registry.releaseAll();
+    };
   }, []);
 
   const load = useCallback(async () => {
     const registry = registryRef.current;
     const { memory, assets } = await readMemoryWithAssets(memoryId);
+
+    if (!mountedRef.current) {
+      return;
+    }
+
     const next = {};
 
     registry.releaseAll();
@@ -82,6 +116,7 @@ export function MemoryAssetsViewer({ memoryId }) {
 
     setState({ status: "ready", memory, assets });
     setPreviews(next);
+    setConfirmingId(null);
   }, [memoryId]);
 
   useEffect(() => {
@@ -100,16 +135,28 @@ export function MemoryAssetsViewer({ memoryId }) {
   }, [load]);
 
   async function handleRemove(assetId) {
+    if (pendingRemoval) {
+      return;
+    }
+
     setPendingRemoval(assetId);
     setError(null);
 
     try {
       await removeMemoryAsset(memoryId, assetId);
-      await load();
+
+      if (mountedRef.current) {
+        await load();
+      }
     } catch (removeError) {
-      setError(READ_MESSAGES[removeError?.code] ?? "删除图片失败，请重试。");
+      if (mountedRef.current) {
+        setError(READ_MESSAGES[removeError?.code] ?? "删除图片失败，请重试。");
+        setConfirmingId(null);
+      }
     } finally {
-      setPendingRemoval(null);
+      if (mountedRef.current) {
+        setPendingRemoval(null);
+      }
     }
   }
 
@@ -170,7 +217,10 @@ export function MemoryAssetsViewer({ memoryId }) {
                 asset={asset}
                 previewUrl={previews[asset.id]}
                 onRemove={handleRemove}
-                isRemoving={pendingRemoval === asset.id}
+                isRemoving={pendingRemoval !== null}
+                isConfirming={confirmingId === asset.id}
+                onAskRemove={setConfirmingId}
+                onCancelRemove={() => setConfirmingId(null)}
               />
             ))}
           </ul>

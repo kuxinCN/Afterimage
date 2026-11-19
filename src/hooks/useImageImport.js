@@ -26,6 +26,10 @@ export function useImageImport() {
   // React state is one render behind, so the dedupe key set lives in a ref that
   // updates the moment a file is accepted.
   const keysRef = useRef(new Set());
+  const mountedRef = useRef(true);
+  // Overlapping imports must not clear each other's reading flag, and work
+  // finished after unmount must not create object URLs nobody will revoke.
+  const pendingRef = useRef(0);
 
   if (!registryRef.current) {
     registryRef.current = createPreviewRegistry();
@@ -34,7 +38,12 @@ export function useImageImport() {
   useEffect(() => {
     const registry = registryRef.current;
 
-    return () => registry.releaseAll();
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+      registry.releaseAll();
+    };
   }, []);
 
   const addFiles = useCallback(async (fileList) => {
@@ -44,6 +53,7 @@ export function useImageImport() {
       return { acceptedCount: 0, rejectedCount: 0 };
     }
 
+    pendingRef.current += 1;
     setIsReading(true);
 
     const registry = registryRef.current;
@@ -52,6 +62,10 @@ export function useImageImport() {
       const outcome = await inspectImageFiles(files, {
         existingFingerprints: [...keysRef.current],
       });
+
+      if (!mountedRef.current) {
+        return { acceptedCount: 0, rejectedCount: 0 };
+      }
 
       for (const entry of outcome.accepted) {
         keysRef.current.add(entry.fingerprint);
@@ -90,7 +104,15 @@ export function useImageImport() {
       // One decode at a time: a phone photo can expand to hundreds of megabytes
       // of pixels, and nine of them at once would freeze the tab.
       for (const entry of outcome.accepted) {
+        if (!mountedRef.current) {
+          break;
+        }
+
         const metadata = await readImageMetadata(entry.file);
+
+        if (!mountedRef.current) {
+          break;
+        }
 
         if (metadata.decodeFailed) {
           keysRef.current.delete(entry.fingerprint);
@@ -123,7 +145,11 @@ export function useImageImport() {
         rejectedCount: outcome.rejected.length,
       };
     } finally {
-      setIsReading(false);
+      pendingRef.current -= 1;
+
+      if (mountedRef.current) {
+        setIsReading(pendingRef.current > 0);
+      }
     }
   }, []);
 

@@ -5,17 +5,17 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { ActionChoices } from "@/components/flow/ActionChoices";
+import { ActionTimeline } from "@/components/flow/ActionTimeline";
 import { FreeActionInput } from "@/components/flow/FreeActionInput";
 import { RequestState } from "@/components/flow/RequestState";
 import { StoryScenePanel } from "@/components/flow/StoryScenePanel";
 import { StoryText } from "@/components/flow/StoryText";
-import { ModeNav } from "@/components/nav/ModeNav";
+import { toneStyle } from "@/components/flow/storyTones";
 import { useStoryRequest } from "@/hooks/useStoryRequest";
 import { useStoryScene } from "@/hooks/useStoryScene";
 import {
   describeTrajectory,
   ENDING_META,
-  INTENT_META,
   submitAction,
 } from "@/services/api/storyService";
 import { useStoryStore } from "@/store/StoryContext";
@@ -42,6 +42,8 @@ export function StoryView() {
   }
 
   const trajectory = describeTrajectory(history);
+  const leadingTone = toneStyle(ENDING_META[trajectory.leading].tone);
+  const filledBeats = Math.min(history.length, trajectory.beats);
 
   async function advance(action, signal) {
     const { story: next } = await submitAction(
@@ -71,24 +73,60 @@ export function StoryView() {
   return (
     <div className="page-in relative mx-auto w-full max-w-3xl space-y-8 px-4 py-10 sm:px-8 sm:py-12">
       <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#8d8474]">
-        <Link href="/" className="hover:text-[#e6ddce]">
-          首页
-        </Link>
         <Link href="/create" className="hover:text-[#e6ddce]">
           ← 回到输入页
         </Link>
         <span>第 {history.length + 1} 段</span>
-        <span className="ml-auto">
-          <ModeNav />
-        </span>
       </nav>
 
-      <header className="space-y-2">
+      <header className="space-y-4">
         <h1 className="title-glow text-2xl text-[#efe7d8] sm:text-3xl">{story.title}</h1>
-        <p className="text-xs text-[#8d8474]">
-          当前走向：{ENDING_META[trajectory.leading].title} · 共 {history.length} 步 ·
-          仍可达 {trajectory.reachable.length} 种结局
-        </p>
+        <div className="glass space-y-3 rounded-xl px-4 py-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span
+              className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs"
+              style={{
+                color: leadingTone.text,
+                borderColor: leadingTone.border,
+                background: leadingTone.surface,
+              }}
+            >
+              <span
+                aria-hidden="true"
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ background: leadingTone.text, boxShadow: `0 0 8px ${leadingTone.glow}` }}
+              />
+              当前走向 · {ENDING_META[trajectory.leading].title}
+            </span>
+            <span className="flex items-center gap-1.5" aria-label={`已走 ${history.length} 步，共 ${trajectory.beats} 拍`}>
+              {Array.from({ length: trajectory.beats }, (_, index) => (
+                <span
+                  key={index}
+                  aria-hidden="true"
+                  className="h-1.5 w-6 rounded-full transition-colors duration-500"
+                  style={{
+                    background:
+                      index < filledBeats ? leadingTone.text : "rgba(230, 213, 176, 0.12)",
+                    boxShadow: index < filledBeats ? `0 0 8px ${leadingTone.glow}` : "none",
+                  }}
+                />
+              ))}
+            </span>
+            <span className="text-xs text-[#8d8474]">共 {history.length} 步</span>
+          </div>
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#6b6459]">
+            仍可达 {trajectory.reachable.length} 种结局：
+            {trajectory.reachable.map((ending) => {
+              const tone = toneStyle(ENDING_META[ending].tone);
+
+              return (
+                <span key={ending} style={{ color: tone.text }}>
+                  {ENDING_META[ending].title}
+                </span>
+              );
+            })}
+          </p>
+        </div>
       </header>
 
       {/* Scene payload + exploration come from the useStoryScene seam, not from
@@ -137,19 +175,9 @@ export function StoryView() {
       ) : null}
 
       {history.length > 0 ? (
-        <section className="space-y-2">
+        <section className="space-y-3">
           <h3 className="text-xs text-[#8d8474]">已走过的行动（{history.length}）</h3>
-          <ol className="space-y-1 text-sm text-[#9a9082]">
-            {trajectory.steps.map((step) => (
-              <li key={step.index}>
-                {step.index}.{" "}
-                {step.kind === "choice" ? `选择「${step.label}」` : `自由输入：${step.input}`}
-                <span className="ml-1 text-xs text-[#6b6459]">
-                  （{INTENT_META[step.intent].label}）
-                </span>
-              </li>
-            ))}
-          </ol>
+          <ActionTimeline steps={trajectory.steps} />
         </section>
       ) : null}
     </div>

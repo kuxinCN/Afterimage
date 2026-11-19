@@ -5,6 +5,8 @@ import { useState } from "react";
 import { STORY_LIMITS } from "@/lib/constants";
 import { classifyFreeTextIntent, INTENT_META } from "@/services/api/storyService";
 
+import { toneStyle } from "./storyTones";
+
 export function FreeActionInput({
   onSubmit,
   disabled = false,
@@ -13,7 +15,9 @@ export function FreeActionInput({
   const [text, setText] = useState("");
   const trimmed = text.trim();
   const canSubmit = trimmed.length > 0 && !disabled;
-  const intentLabel = trimmed ? INTENT_META[classifyFreeTextIntent(trimmed)].label : null;
+  const intent = trimmed ? INTENT_META[classifyFreeTextIntent(trimmed)] : null;
+  const intentTone = intent ? toneStyle(intent.tone) : null;
+  const nearLimit = text.length >= maxLength * 0.9;
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -47,9 +51,23 @@ export function FreeActionInput({
         className="w-full resize-y rounded-xl border border-[#33302a] bg-[rgba(20,18,16,0.7)] px-4 py-3 text-base leading-relaxed text-[#efe7d8] backdrop-blur transition-all placeholder:text-[#6b6459] focus:border-[rgba(230,213,176,0.45)] focus:shadow-[0_0_0_3px_rgba(230,213,176,0.08)] focus:outline-none disabled:opacity-50"
       />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-xs text-[#7c7466]">
-          {text.length} / {maxLength}
-          {intentLabel ? ` · 意图倾向：${intentLabel}` : ""}
+        <span className="flex flex-wrap items-center gap-2 text-xs text-[#7c7466]">
+          <span className={nearLimit ? "text-[#d8b8a4]" : undefined}>
+            {text.length} / {maxLength}
+          </span>
+          {intent ? (
+            <span
+              className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]"
+              style={{
+                color: intentTone.text,
+                borderColor: intentTone.border,
+                background: intentTone.surface,
+              }}
+            >
+              <span aria-hidden="true">{intent.glyph}</span>
+              意图倾向：{intent.label}
+            </span>
+          ) : null}
         </span>
         <button
           type="submit"

@@ -1,5 +1,6 @@
 import localFont from "next/font/local";
 import "./globals.css";
+import { AppHeader } from "@/components/nav/AppHeader";
 import { StoryProvider } from "@/store/StoryContext";
 
 const geistSans = localFont({
@@ -24,7 +25,10 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <StoryProvider>{children}</StoryProvider>
+        <StoryProvider>
+          <AppHeader />
+          {children}
+        </StoryProvider>
       </body>
     </html>
   );
